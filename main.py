@@ -1,8 +1,30 @@
 import googlemaps # get_google_maps_link(), get_distance()
 import requests # load_static_map_image()
-import json # load_static_map_image()
-# Replace 'YOUR_API_KEY' with your actual API key
+import time as Time
 
+import gspread
+#the old one is deprecated: from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
+#launches a browser asking you for authentication in data2sheet-1\main.py
+def get_cell_val(col,row):
+    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.file']
+    credentials= Credentials.from_service_account_file("secret_credential.json", scopes=scope) 
+    client = gspread.authorize(credentials)
+    sh = client.open(title='EU_tour')#,folder_id='1CCJ6d-P381whToCFP6V9rb_mkI84GuHIF6z5rqWAzzg') #error--------------
+    wks= sh.worksheet("巴黎和近郊")
+    print("\n value: ",wks.cell(row=row,col=col).value)
+    return wks.cell(row=row,col=col).value
+    
+
+def data2sheet(data,row,col):
+    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.file']
+    #credentials = ServiceAccountCredentials.from_json_keyfile_name(mykey_json, scope)
+    credentials= Credentials.from_service_account_file("secret_credential.json", scopes=scope) 
+    client = gspread.authorize(credentials)
+    sh = client.open(title='EU_tour')#,folder_id='1CCJ6d-P381whToCFP6V9rb_mkI84GuHIF6z5rqWAzzg') #error--------------
+    wks= sh.worksheet("巴黎和近郊")
+    wks.update_acell(col+str(row), data)
+    return 0
 
 
 def get_google_maps_link(location_name,api_key):
@@ -58,7 +80,6 @@ def load_static_map_image(location,api_key):
     size_var = "600x400"  # Size of the image in pixels (width x height) 1x1~640x640
     # Construct the URL for the Maps Static API
     url = f"https://maps.googleapis.com/maps/api/staticmap?center={encoded_location}&zoom={zoom_var}&size={size_var}&key={api_key}"
-    print(url)
     
     try:
         # Send a GET request to retrieve the image
@@ -106,16 +127,16 @@ def get_place_id(location,api_key):
             place_id = data['predictions'][0]['place_id']
             return place_id
         else:
-            print("No place ID found for the location.")
+            return "No place ID found for the location."
     else:
-        print("Failed to retrieve data.")
+        return "Failed to retrieve data."
     
     return None
 
 
 
 
-def get_spot_details(location,api_key):
+def get_spot_details(location,api_key,row):
     place_id= get_place_id(location,api_key)
     fields = "name,rating,formatted_address,opening_hours,photos"
     url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&fields={fields}&key={api_key}"
@@ -124,7 +145,7 @@ def get_spot_details(location,api_key):
     headers = {}
     
     response = requests.request("GET", url, headers=headers, data=payload)
-    
+
     # Check if the request was successful
     if response.status_code == 200:
         # Parse the JSON response
@@ -133,33 +154,39 @@ def get_spot_details(location,api_key):
         if data['status'] == 'OK':
             # Extract the spot details
             spot = data["result"]
-            print(spot)
+            #print(spot)
             # attributes--------------
             name = spot['name']
             address = spot['formatted_address']
-            opening_hours = spot['opening_hours']['weekday_text']
-            rating = spot.get('rating')
+            
+            # opening hour
+            if spot.get('opening_hours') is not None:
+                opening_hours=spot["opening_hours"]["weekday_text"]
+                time=''
+                for opening_time in opening_hours:
+                    time+= opening_time.encode('ascii', 'ignore').decode('ascii')+'\n'
+                    #print(opening_time.encode('ascii', 'ignore').decode('ascii'))
+                data2sheet(time,row,'G')
+            # rating
+            if spot.get('rating') is not None:
+                #print("Rating:", rating)
+                data2sheet(spot.get('rating'),row,'I')
+               
+             
             photos = spot.get('photos')
 
             # Display the information--------
             print("Spot:", name)
-            print("Address:", address)
-            # opening hour
-            for opening_time in opening_hours:
-                print(opening_time)
-                #print(opening_time.encode('ascii', 'ignore').decode('ascii'))
+            
+            #print("Address:", address)           
                 
-            #rating
-            if rating is not None:
-                print("Rating:", rating)
-            else:
-                print("No rating")
             #photo
             if photos is not None:
                 # Retrieve the photo reference and construct the photo URL
                 photo_reference = photos[0]['photo_reference']
                 photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key}"
-                print("Photo URL:", photo_url)
+                #print("Photo URL:", photo_url)
+                data2sheet(photo_url,row,'D')
 
             else:
                 print("No photo available.")
@@ -174,3 +201,9 @@ if __name__=='__main__':
     #print(get_google_maps_link("New York, NY","AIzaSyC0yOIiqV9s58sqwBNgbh_73mTUwSBtxag"))
     #print(get_distance("桃園火車站", "新竹火車站",api_key))
     #get_spot_details("Taipei 101",api_key)
+    lis=[1,22,25,33,34,42,43,51,53,55,56,58,61,62,69,70,72,73,78,79,82,83,84,86,87,88]
+    for i in range(1,4):
+        spot='法國 '+get_cell_val(row=i,col=3)
+        get_spot_details(spot,api_key,row=i)
+        data2sheet(get_google_maps_link(spot,api_key),i,'F')
+        

@@ -148,6 +148,7 @@ def get_spot_details(location,api_key,row):
 
     # Check if the request was successful
     if response.status_code == 200:
+        #Time.sleep(5)
         # Parse the JSON response
         data = response.json()
         
@@ -166,11 +167,11 @@ def get_spot_details(location,api_key,row):
                 for opening_time in opening_hours:
                     time+= opening_time.encode('ascii', 'ignore').decode('ascii')+'\n'
                     #print(opening_time.encode('ascii', 'ignore').decode('ascii'))
-                data2sheet(time,row,'G')
+                data2sheet(time,row,'H')
             # rating
             if spot.get('rating') is not None:
                 #print("Rating:", rating)
-                data2sheet(spot.get('rating'),row,'I')
+                data2sheet(spot.get('rating'),row,'J')
                
              
             photos = spot.get('photos')
@@ -186,7 +187,7 @@ def get_spot_details(location,api_key,row):
                 photo_reference = photos[0]['photo_reference']
                 photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key}"
                 #print("Photo URL:", photo_url)
-                data2sheet(photo_url,row,'D')
+                data2sheet(photo_url,row,'E')
 
             else:
                 print("No photo available.")
@@ -195,15 +196,15 @@ def get_spot_details(location,api_key,row):
     else:
         print("Failed to retrieve data.")
 
+
 if __name__=='__main__':
     api_key= "AIzaSyC0yOIiqV9s58sqwBNgbh_73mTUwSBtxag" # general key
     #load_static_map_image("New York,NY", api_key)
     #print(get_google_maps_link("New York, NY","AIzaSyC0yOIiqV9s58sqwBNgbh_73mTUwSBtxag"))
     #print(get_distance("桃園火車站", "新竹火車站",api_key))
     #get_spot_details("Taipei 101",api_key)
-    lis=[1,22,25,33,34,42,43,51,53,55,56,58,61,62,69,70,72,73,78,79,82,83,84,86,87,88]
-    for i in range(1,4):
-        spot='法國 '+get_cell_val(row=i,col=3)
+    for i in range(12,13):
+        spot=get_cell_val(row=i,col=4)
         get_spot_details(spot,api_key,row=i)
-        data2sheet(get_google_maps_link(spot,api_key),i,'F')
+        data2sheet(get_google_maps_link(spot,api_key),i,'G')
         

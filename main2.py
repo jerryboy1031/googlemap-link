@@ -118,7 +118,7 @@ if __name__=='__main__':
             data2sheet(name,row=i,col='A')
             data2sheet(address,row=i,col='B')
         if get_place經緯(spot,api_key,placeID) is not None:
-            lng,lat= get_place經緯(spot,api_key,placeID)
+            lng,lat= get_place經緯(spot,api_key,placeID) # type: ignore
             data2sheet(lat,row=i,col='C')
             data2sheet(lng,row=i,col='D')
             

@@ -148,7 +148,7 @@ def get_spot_details(location,api_key,row):
 
     # Check if the request was successful
     if response.status_code == 200:
-        #Time.sleep(5)
+        Time.sleep(1)
         # Parse the JSON response
         data = response.json()
         
@@ -168,6 +168,7 @@ def get_spot_details(location,api_key,row):
                     time+= opening_time.encode('ascii', 'ignore').decode('ascii')+'\n'
                     #print(opening_time.encode('ascii', 'ignore').decode('ascii'))
                 data2sheet(time,row,'H')
+            return 0
             # rating
             if spot.get('rating') is not None:
                 #print("Rating:", rating)
@@ -203,8 +204,9 @@ if __name__=='__main__':
     #print(get_google_maps_link("New York, NY","AIzaSyC0yOIiqV9s58sqwBNgbh_73mTUwSBtxag"))
     #print(get_distance("桃園火車站", "新竹火車站",api_key))
     #get_spot_details("Taipei 101",api_key)
-    for i in range(12,13):
+    lis=[42]
+    for i in lis:
         spot=get_cell_val(row=i,col=4)
         get_spot_details(spot,api_key,row=i)
-        data2sheet(get_google_maps_link(spot,api_key),i,'G')
+        #data2sheet(get_google_maps_link(spot,api_key),i,'G')
         

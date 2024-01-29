@@ -29,7 +29,7 @@ It is **authored by** [**陳佳俊**](https://github.com/jerryboy1031). It is **
 
 - generate the Google Maps link, and access the information about a location
 <p align="left">
-    <img src=".vscode/cover2.png" width="400">
+    <img src=".vscode/cover2.png" width="600">
     <br>
     <sup>figure is provided by 陳佳俊
     </sup>
